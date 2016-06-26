@@ -6,7 +6,7 @@ sports = sports.map(function (sport){
 })
 
 const User = proxdb.model('user', {
-  fb: {	//we use these fields even for people who don't authenticate with facebook
+  fb: joi.object({	//we use these fields even for people who don't authenticate with facebook
   		id: joi.string(),
   		first_name: joi.string(),
   		last_name: joi.string(),
@@ -17,7 +17,7 @@ const User = proxdb.model('user', {
   		email: joi.string().email(),
   		location: joi.string(),
   		hometown: joi.string()
-  	},
+  	}).unknown(),
   	creation_date: joi.date().default(Date.now, 'time of creation'),
     page_limit: joi.number().default(50),
     fb_publish: joi.boolean().default(true),
