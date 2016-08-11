@@ -10,14 +10,12 @@ const server = require('http').Server(app.callback())
 const makeCRUD = require('./lib/make-crud')
 const sioRPCServer = RPC(server)
 const User = require('./models/user')
+const sportsEnum = require('./enums/sports-enum')
 
 const handlers = {
-  hello: function () {
-    console.log('hello')
-  },
-  auth: function* (token) {
+  auth: function * (token) {
     let res = yield request('https://graph.facebook.com/me?access_token=' + token + '&fields=id,name,email,gender,installed,verified,location,hometown')
-    res =  JSON.parse(res)
+    res = JSON.parse(res)
     let existing = User.all().find((u) => u.fb.id === res.id)
     if (!existing) {
       log('created new user, ', res.id, res.name)
@@ -27,12 +25,13 @@ const handlers = {
       })
     }
     this.user = existing
+    log(`logged in existing user`, existing)
     return existing
   },
   unauth: function () {
     delete this.user
   },
-  getUser: function* () {
+  getUser: function * () {
     return this.fbUser
   }
 }
@@ -42,7 +41,12 @@ Object.assign(handlers, makeCRUD(require('./models/location')))
 Object.assign(handlers, makeCRUD(require('./models/event')))
 
 sioRPCServer.expose(handlers)
-
+sioRPCServer.expose({
+  sportsEnum: () => {
+    return sportsEnum
+  }
+})
+require('./lib/photos')(sioRPCServer)
 // Start the server
 server.listen(config.port)
 console.info('Now running on: ', config.port)
